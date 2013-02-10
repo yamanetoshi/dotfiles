@@ -1,0 +1,157 @@
+; ---- language-env DON'T MODIFY THIS LINE!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 日本語表示の設定
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(if (not (boundp 'MULE))
+    (if (featurep 'xemacs)
+        ; xemacs21 の場合
+	(progn
+	  (set-language-environment "Japanese")
+	  (set-default-buffer-file-coding-system 'euc-jp-unix)
+	  (set-keyboard-coding-system 'euc-jp-unix)
+	  (if (not window-system) (set-terminal-coding-system 'euc-jp-unix))
+        )
+        ; emacs20 の場合
+        (progn
+	  (set-language-environment "Japanese")
+	  (set-default-coding-systems 'euc-japan-unix)
+	  (set-keyboard-coding-system 'euc-japan-unix)
+	  (if (not window-system) (set-terminal-coding-system 'euc-japan-unix))
+        )
+    )
+)
+; 日本語 info が文字化けしないように
+(auto-compression-mode t)
+; xemacs の shell-mode で 日本語 EUC が使えるようにする
+(if (featurep 'xemacs)
+    (add-hook 'shell-mode-hook (function
+       (lambda () (set-buffer-process-coding-system 'euc-japan 'euc-japan))))
+)
+; 日本語 grep
+(if (file-exists-p "/usr/bin/jgrep")
+    (setq grep-command "jgrep -n -e ")
+)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 漢字変換 (skk) の設定
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(set-input-method "japanese-skk")
+;(toggle-input-method nil)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Xでのカラー表示
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(require 'font-lock)
+;(if (not (featurep 'xemacs))
+;    (global-font-lock-mode t)
+;)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; C プログラムの書式
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun my-c-mode-common-hook ()
+   (c-set-style "linux") (setq indent-tabs-mode t) ;linux 式がいいとき
+;      /usr/src/linux/Documentation/CodingStyle 参照
+;   (c-set-style "k&r") ;k&r式がいいときはこれを有効にする
+;   (c-set-style "gnu") ;デフォルトの設定
+;
+; default
+;
+;  (c-set-style "bsd")
+;  (setq tab-width 4)
+;  (setq c-basic-offset tab-width)
+ )
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; いろいろ
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Deleteキーでカーソル位置の文字が消えるようにする
+(global-set-key [delete] 'delete-char)
+;; C-h キーでカーソルの左の文字が消えるようにする。
+;; ただし、もともと C-h はヘルプなので、
+;; これを有効にすると、ヘルプを使うときには
+;; M-x help や F1 を使う必要があります。
+;(global-set-key "\C-h" 'backward-delete-char)
+
+; ---- language-env end DON'T MODIFY THIS LINE!
+
+;(mac-add-ignore-shortcut '(control))
+
+
+(set-default-font "-*-fixed-medium-r-normal-*-16-*")
+
+(defun memo ()
+  (interactive)
+    (add-change-log-entry
+    nil
+    (expand-file-name "~/debian/docs/diary.txt")))
+(define-key ctl-x-map "M" 'memo)
+
+(setq inferior-lisp-program "gcl")
+;(setq scheme-program-name "guile")
+(setq scheme-program-name "gosh -i")
+
+
+;(autoload 'navi2ch "navi2ch" "Navigator for 2ch for Emacs" t)
+
+(tool-bar-mode nil)
+(blink-cursor-mode nil)
+(setq cursor-in-non-selected-windows nil)
+(set-face-background 'region "gray80")
+
+(setq display-time-24hr-format t)
+(setq display-time-day-and-date t)
+(display-time)
+
+(setq gosh-program-name "/usr/bin/env gosh -i")
+;(autoload 'run-scheme "cmuscheme" "Run an inferior Scheme process." t)
+(defun run-guile () (interactive) (run-scheme "guile"))
+(defun run-gauche () (interactive) (run-scheme "gosh"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GNU GLOBAL(gtags)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(autoload 'gtags-mode "gtags" "" t)
+(setq gtags-mode-hook
+      '(lambda ()
+         (local-set-key "\M-t" 'gtags-find-tag)
+         (local-set-key "\M-r" 'gtags-find-rtag)
+         (local-set-key "\M-s" 'gtags-find-symbol)
+         (local-set-key "\C-t" 'gtags-pop-stack)
+         ))
+
+(setq default-fontset "fontset-10")
+
+;; Add paths to SKK and APEL
+(defvar system-load-path load-path)
+;(setq my-load-path ("/usr/share/emacs/22.1/site-lisp/skk"
+;		    "/usr/share/emacs/22.1/site-lisp/emu"
+;		    "/usr/share/emacs/site-lisp/apel"))
+;(setq load-path (append my-load-path system-load-path))
+
+(require 'skk-autoloads)
+(global-set-key "\C-x\C-j" 'skk-mode)
+(global-set-key "\C-xj" 'skk-auto-fill-mode)
+(global-set-key "\C-ct" 'skk-tutorial)
+
+;(setq skk-large-jisyo "/Users/tyamane/SKK-JISYO.L")
+
+;(setq skk-tut-file "/usr/share/skk/SKK.tut")
+
+(add-hook 'isearch-mode-hook
+	  (function (lambda ()
+		      (and (boundp 'skk-mode) skk-mode
+			   (skk-isearch-mode-setup)))))
+
+(add-hook 'isearch-mode-end-hook
+	  (function
+	   (lambda ()
+	     (and (boundp 'skk-mode) skk-mode (skk-isearch-mode-cleanup))
+	     (and (boundp 'skk-mode-invoked) skk-mode-invoked
+		  (skk-set-cursor-properly)))))
+
+(setq load-path (cons "~/.emacs.d" load-path))
+
+(autoload 'markdown-mode "markdown-mode"
+   "Major mode for editing Markdown files" t)
+;(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode)
+(setq auto-mode-alist (cons '("\\.md" . markdown-mode) auto-mode-alist))
