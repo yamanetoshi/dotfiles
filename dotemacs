@@ -155,3 +155,7 @@
    "Major mode for editing Markdown files" t)
 ;(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode)
 (setq auto-mode-alist (cons '("\\.md" . markdown-mode) auto-mode-alist))
+
+(tool-bar-mode -1)
+
+
